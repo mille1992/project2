@@ -3,5 +3,32 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    {% for listing in listings %}
+    <div class="container pt-4">
+        <div class="row">
+            <div class="col" name="listingImage">
+                {% if listing.imageUrl is not None %}
+                    <img class="img-responsive rounded-circle"  src="{{ listing.imageUrl }}" alt="Your image" width="25%">
+                {% else %}
+                    <p>Your image can go here</p>
+                {% endif%}
+            </div>
+            <div class="w-50">       
+                    <h4>{{ listing.title }}</h4>
+                    <div  name="listingDescription">
+                        <p>
+                             {{ listing.description }}
+                        </p>
+                    </div>
+            </div>
+
+            <div class="col border-left" name="listingPrize">
+                     <h4>Current prize:</h4>
+                     {{ listing.listingPrize }} €
+            </div>
+
+        </div>
+    </div>
+    <br>
+    {% endfor %}
 {% endblock %}

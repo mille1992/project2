@@ -1,14 +1,20 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Listing
+from .models import User, Listing, Bid, Comment
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    allListings = list(Listing.objects.all())
+    if not allListings:
+        raise Http404("No Listings found")
+    else: 
+        return render(request, "auctions/index.html", {
+            "listings": allListings
+        })
 
 
 def login_view(request):
@@ -64,14 +70,17 @@ def register(request):
 
 def createListing(request):
     if request.method == "POST":
+        # get data from POST request
         titleInput = request.POST["titleInput"]
         descriptionInput = request.POST["descriptionInput"]
         startPrizeInput = request.POST["startPrizeInput"]
         imageUrlInput = request.POST["imageUrlInput"]
         categoriesInput = request.POST["categoriesInput"]
-
+        #create new object from data
         newListing = Listing(title=titleInput, description=descriptionInput, listingPrize=startPrizeInput, imageUrl=imageUrlInput, category=categoriesInput) 
+        #save data to db
         newListing.save()
+
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/createListing.html")
