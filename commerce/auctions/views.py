@@ -10,7 +10,8 @@ from .models import User, Listing, Bid, Comment
 def index(request):
     allListings = list(Listing.objects.all())
     if not allListings:
-        raise Http404("No Listings found")
+        #raise Http404("No Listings found")
+        return render(request, "auctions/createListing.html")
     else: 
         return render(request, "auctions/index.html", {
             "listings": allListings
@@ -77,7 +78,7 @@ def createListing(request):
         imageUrlInput = request.POST["imageUrlInput"]
         categoriesInput = request.POST["categoriesInput"]
         #create new object from data
-        newListing = Listing(title=titleInput, description=descriptionInput, listingPrize=startPrizeInput, imageUrl=imageUrlInput, category=categoriesInput) 
+        newListing = Listing(title=titleInput, description=descriptionInput, listingPrize=startPrizeInput , startingPrize=startPrizeInput, imageUrl=imageUrlInput, category=categoriesInput) 
         #save data to db
         newListing.save()
 
@@ -86,35 +87,47 @@ def createListing(request):
         return render(request, "auctions/createListing.html")
 
 def listingDetails(request, listingId):
-    listing = list(Listing.objects.filter(id = listingId))
+    listing = Listing.objects.get(id = listingId)
     if "watchlist" not in request.session:
         request.session["watchlist"] = []
         watchlist = request.session["watchlist"]
     else:
         watchlist = request.session["watchlist"]
-    
-    if listing[0].id not in watchlist:
+
+    if listing.id not in watchlist:
         itemInWatchlist = False
     else:
         itemInWatchlist = True
 
-
     if request.method == "POST":
-        if listing[0].id not in watchlist and itemInWatchlist == False:
-            watchlist.append(listing[0].id)
-            request.session["watchlist"] = watchlist
-            itemInWatchlist = True
-        else:
-            watchlist.remove(listing[0].id)
-            request.session["watchlist"] = watchlist
-            itemInWatchlist = False
+        # if POST request was issued by a new bid
+        if "bidPrize" in request.POST:
+            bidPrize = int(request.POST["bidPrize"])
+            currentPrize = listing.listingPrize
+            startingPrize = listing.startingPrize
+            # check that prize of the bid is higher than the current and the starting Prize, if yes, save the new bid.
+            if bidPrize > currentPrize and bidPrize > startingPrize:
+                listing.listingPrize = bidPrize
+                listing.save()
+        # if POST request was issued by a change on the watchlist
+        else: 
+            #if the item is not on the watchlist, add it and change the indicator for the watchlist button
+            if listing.id not in watchlist and itemInWatchlist == False: 
+                watchlist.append(listing.id)
+                request.session["watchlist"] = watchlist
+                itemInWatchlist = True
+            #if the item is on the watchlist, remove it and change the indicator for the watchlist button
+            else:
+                watchlist.remove(listing.id)
+                request.session["watchlist"] = watchlist
+                itemInWatchlist = False
 
         return render(request, "auctions/listingDetails.html", {
-            "listing": listing[0],
+            "listing": listing,
             "watchlistCheck": itemInWatchlist
         })
     else:        
         return render(request, "auctions/listingDetails.html", {
-            "listing": listing[0],
+            "listing": listing,
             "watchlistCheck": itemInWatchlist
         })

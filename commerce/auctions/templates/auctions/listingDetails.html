@@ -11,8 +11,8 @@
                     <p>Your image can go here</p>
                 {% endif%}
             </div>
-            <div class="row col m-2 p-2 bg-white">
-                <div class="col bg-white mt-2 ml-2 mb-2 p-2">       
+            <div class="row col-6 m-2 p-2 bg-white">
+                <div class="col-9 bg-white mt-2 ml-2 mb-2 p-2">       
                         <h4> 
                              {{ listing.title }}
                         </h4>
@@ -22,23 +22,40 @@
                             </p>
                         </div>
                 </div>
-                <div class="col-3 border-left border-secondary bg-white mr-2 mb-2 mt-2 p-2 name="listingPrize">
+                <div class="col border-left border-secondary bg-white mr-2 mb-2 mt-2 p-2 name="listingPrize">
                         <h4>Current prize:</h4>
                         {{ listing.listingPrize }} €
                 </div>
             </div>
-            <div class="row col m-2 p-2">
+            <div class="col m-2 p-2">
                 {% if watchlistCheck == False %}
                     <form action="{% url 'listingDetails' listing.id %}" method="POST">
                         {% csrf_token %}
-                        <input type="submit" value="Add to Watchlist">
+                        <div class="form-group">
+                            <input type="submit" class="form-control" value="Add to Watchlist">
+                        </div>
                     </form>
                 {% else %}
                     <form action="{% url 'listingDetails' listing.id %}" method="POST">
                         {% csrf_token %}
-                        <input type="submit" value="Remove from Watchlist">
+                        <div class="form-group">
+                            <input type="submit" class="form-control" value="Remove from Watchlist">
+                        </div>
                     </form>
                 {% endif %}
+            </div>
+        </div>
+        <div class="row ">
+            <div class="col-3 m-2 p-2"></div>
+            <div class="col-6 m-2 p-2 ">
+                <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="bidPrizeInput">Place your bid here</label>
+                        <input type="number" class="form-control" id="bidPrizeInput" name="bidPrize" min="{{ listing.listingPrize|add:1 }}">
+                        <input type="submit" class="form-control" value="Place Bid">
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -9,6 +9,7 @@ class User(AbstractUser):
 class Listing(models.Model):
     title = models.CharField(max_length=64)
     description = models.TextField()
+    startingPrize = models.PositiveIntegerField(validators=[MinValueValidator(0.01)])
     listingPrize = models.PositiveIntegerField(validators=[MinValueValidator(0.01)])
     imageUrl = models.CharField(max_length=128)
     category = models.CharField(max_length=64, default="others")
