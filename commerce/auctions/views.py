@@ -84,3 +84,37 @@ def createListing(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/createListing.html")
+
+def listingDetails(request, listingId):
+    listing = list(Listing.objects.filter(id = listingId))
+    if "watchlist" not in request.session:
+        request.session["watchlist"] = []
+        watchlist = request.session["watchlist"]
+    else:
+        watchlist = request.session["watchlist"]
+    
+    if listing[0].id not in watchlist:
+        itemInWatchlist = False
+    else:
+        itemInWatchlist = True
+
+
+    if request.method == "POST":
+        if listing[0].id not in watchlist and itemInWatchlist == False:
+            watchlist.append(listing[0].id)
+            request.session["watchlist"] = watchlist
+            itemInWatchlist = True
+        else:
+            watchlist.remove(listing[0].id)
+            request.session["watchlist"] = watchlist
+            itemInWatchlist = False
+
+        return render(request, "auctions/listingDetails.html", {
+            "listing": listing[0],
+            "watchlistCheck": itemInWatchlist
+        })
+    else:        
+        return render(request, "auctions/listingDetails.html", {
+            "listing": listing[0],
+            "watchlistCheck": itemInWatchlist
+        })

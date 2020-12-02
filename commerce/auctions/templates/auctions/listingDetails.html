@@ -1,11 +1,7 @@
 {% extends "auctions/layout.html" %}
 
+
 {% block body %}
-
-<div class="container">
-    <h2>Active Listings</h2>
-
-    {% for listing in listings %}
     <div class="container">
         <div class="row">
             <div class="col-3 m-2 p-2 " name="listingImage">
@@ -18,7 +14,7 @@
             <div class="row col m-2 p-2 bg-white">
                 <div class="col bg-white mt-2 ml-2 mb-2 p-2">       
                         <h4> 
-                            <a href="{% url 'listingDetails' listing.id %}"> {{ listing.title }}</a>
+                             {{ listing.title }}
                         </h4>
                         <div  name="listingDescription">
                             <p>
@@ -31,9 +27,20 @@
                         {{ listing.listingPrize }} €
                 </div>
             </div>
+            <div class="row col m-2 p-2">
+                {% if watchlistCheck == False %}
+                    <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="submit" value="Add to Watchlist">
+                    </form>
+                {% else %}
+                    <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="submit" value="Remove from Watchlist">
+                    </form>
+                {% endif %}
+            </div>
         </div>
     </div>
-    <br>
-    {% endfor %}
-</div>
+
 {% endblock %}
