@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.db.models import Max
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
@@ -9,6 +10,7 @@ from .models import User, Listing, Bid, Comment
 
 def index(request):
     allListings = list(Listing.objects.all())
+
     if not allListings:
         #raise Http404("No Listings found")
         return render(request, "auctions/createListing.html")
@@ -77,8 +79,9 @@ def createListing(request):
         startPrizeInput = request.POST["startPrizeInput"]
         imageUrlInput = request.POST["imageUrlInput"]
         categoriesInput = request.POST["categoriesInput"]
+        user = User.objects.get(id=request.user.id)
         #create new object from data
-        newListing = Listing(title=titleInput, description=descriptionInput, listingPrize=startPrizeInput , startingPrize=startPrizeInput, imageUrl=imageUrlInput, category=categoriesInput) 
+        newListing = Listing(title=titleInput, description=descriptionInput, listingPrize=startPrizeInput , startingPrize=startPrizeInput, imageUrl=imageUrlInput, category=categoriesInput, listingOwner=user) 
         #save data to db
         newListing.save()
 
@@ -88,6 +91,26 @@ def createListing(request):
 
 def listingDetails(request, listingId):
     listing = Listing.objects.get(id = listingId)
+    
+    user = "Noone"
+    if request.user.is_authenticated:
+        user = User.objects.get(id=request.user.id)
+    
+    comments = []
+    if listing.listingsCommenters.all():
+        comments = listing.listingsCommenters.all()
+    
+    # creation of default values for checking for the max bidder
+    maxBiddingUser = "Noone"
+    checkMaxBidder = False
+    
+    # if the listing is closed and gets accessed by the highest bidder
+    if listing.biddedListing.all():
+        maxBiddingUser = Bid.objects.get(bidPrize=listing.listingPrize)
+        if user == maxBiddingUser.biddingUser and listing.listingStatus == "closed":
+            checkMaxBidder = True
+
+    # watchlist functionality check
     if "watchlist" not in request.session:
         request.session["watchlist"] = []
         watchlist = request.session["watchlist"]
@@ -99,6 +122,7 @@ def listingDetails(request, listingId):
     else:
         itemInWatchlist = True
 
+
     if request.method == "POST":
         # if POST request was issued by a new bid
         if "bidPrize" in request.POST:
@@ -109,8 +133,20 @@ def listingDetails(request, listingId):
             if bidPrize > currentPrize and bidPrize > startingPrize:
                 listing.listingPrize = bidPrize
                 listing.save()
+                bid = Bid(bidPrize = bidPrize, biddingUser = user, listing = listing)
+                bid.save()
+
         # if POST request was issued by a change on the watchlist
-        else: 
+        elif "closeAuctionButton" in request.POST: 
+            listing.listingStatus = "closed"
+            listing.save()
+            return HttpResponseRedirect(reverse("index"))
+        # if POST request was issued by a closure of the auction
+        elif "commentInput" in request.POST and request.POST["commentInput"] != "":
+            comment = Comment(commentContent = request.POST["commentInput"], commentCreator = user, listing = listing)
+            comment.save()
+            comments = listing.listingsCommenters.all()
+        else:
             #if the item is not on the watchlist, add it and change the indicator for the watchlist button
             if listing.id not in watchlist and itemInWatchlist == False: 
                 watchlist.append(listing.id)
@@ -122,12 +158,21 @@ def listingDetails(request, listingId):
                 request.session["watchlist"] = watchlist
                 itemInWatchlist = False
 
+
         return render(request, "auctions/listingDetails.html", {
             "listing": listing,
-            "watchlistCheck": itemInWatchlist
+            "watchlistCheck": itemInWatchlist,
+            "currentUser": user,
+            "checkMaxBidder": checkMaxBidder,
+            "comments": comments
         })
-    else:        
+    else: 
         return render(request, "auctions/listingDetails.html", {
             "listing": listing,
-            "watchlistCheck": itemInWatchlist
+            "watchlistCheck": itemInWatchlist,
+            "currentUser": user,
+            "checkMaxBidder": checkMaxBidder,
+            "comments": comments
         })
+
+
