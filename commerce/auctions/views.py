@@ -83,10 +83,12 @@ def createListing(request):
         imageUrlInput = request.POST["imageUrlInput"]
         categoriesInput = request.POST["categoriesInput"]
         user = User.objects.get(id=request.user.id)
-        #create new object from data
-        newListing = Listing(title=titleInput, description=descriptionInput, listingPrize=startPrizeInput , startingPrize=startPrizeInput, imageUrl=imageUrlInput, category=categoriesInput, listingOwner=user) 
-        #save data to db
-        newListing.save()
+        
+        if titleInput != "":
+            #create new object from data
+            newListing = Listing(title=titleInput, description=descriptionInput, listingPrize=startPrizeInput , startingPrize=startPrizeInput, imageUrl=imageUrlInput, category=categoriesInput, listingOwner=user) 
+            #save data to db
+            newListing.save()
 
         return HttpResponseRedirect(reverse("index"))
     else:
@@ -206,7 +208,7 @@ def categories(request):
 
 def categoryListings(request, category):
     listings = Listing.objects.filter(category = category)
-        
+
     return render(request, "auctions/categoryListings.html", {
         "listings": listings,
         "category": category
