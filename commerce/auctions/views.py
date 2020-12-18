@@ -176,3 +176,16 @@ def listingDetails(request, listingId):
         })
 
 
+def watchlist(request):
+    watchlistIds = []
+    watchlistListings = []
+    if request.session["watchlist"]:
+        watchlistIds = request.session["watchlist"]
+        watchlistListings = list(Listing.objects.filter(id__in =  watchlistIds))
+
+
+    return render(request, "auctions/watchlist.html", {
+        "watchlist": watchlistListings
+    })
+
+
