@@ -192,3 +192,23 @@ def watchlist(request):
     })
 
 
+def categories(request):
+    listings = Listing.objects.all()
+    categoriesList = []
+    for listing in listings:
+        if listing.category not in categoriesList:
+            categoriesList.append(listing.category)
+
+    return render(request, "auctions/categories.html", {
+        "categoriesList": categoriesList
+    })
+
+
+def categoryListings(request, category):
+    listings = Listing.objects.filter(category = category)
+        
+    return render(request, "auctions/categoryListings.html", {
+        "listings": listings,
+        "category": category
+    })
+
