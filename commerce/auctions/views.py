@@ -1,9 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.db.models import Max
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
+
 
 from .models import User, Listing, Bid, Comment
 
@@ -71,6 +73,7 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
+@login_required
 def createListing(request):
     if request.method == "POST":
         # get data from POST request
@@ -175,7 +178,7 @@ def listingDetails(request, listingId):
             "comments": comments
         })
 
-
+@login_required
 def watchlist(request):
     watchlistIds = []
     watchlistListings = []
