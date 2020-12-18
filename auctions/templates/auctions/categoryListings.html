@@ -1,0 +1,41 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<div class="container">
+    <h2>Active Listings in the {{ category }} category</h2>
+
+    {% for listing in listings %}
+        {% if listing.listingStatus == "open" %}
+        <div class="container">
+            <div class="row">
+                <div class="col-3 m-2 p-2 " name="listingImage">
+                    {% if listing.imageUrl is not None %}
+                        <img class="col img-responsive rounded-circle mx-auto d-block align-middle"  src="{{ listing.imageUrl }}" alt="Your image" width="25%">
+                    {% else %}
+                        <p>Your image can go here</p>
+                    {% endif%}
+                </div>
+                <div class="row col m-2 p-2 bg-white">
+                    <div class="col bg-white mt-2 ml-2 mb-2 p-2">       
+                            <h4> 
+                                <a href="{% url 'listingDetails' listing.id %}"> {{ listing.title }}</a>
+                            </h4>
+                            <div  name="listingDescription">
+                                <p>
+                                    {{ listing.description }}
+                                </p>
+                            </div>
+                    </div>
+                    <div class="col-3 border-left border-secondary bg-white mr-2 mb-2 mt-2 p-2" name="listingPrize">
+                            <h4>Current prize:</h4>
+                            {{ listing.listingPrize }} €
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

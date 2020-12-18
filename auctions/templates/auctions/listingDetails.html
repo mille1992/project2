@@ -1,0 +1,132 @@
+{% extends "auctions/layout.html" %}
+
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-3 m-2 p-2 " name="listingImage">
+                {% if listing.imageUrl is not None %}
+                    <img class="col img-responsive rounded-circle mx-auto d-block align-middle"  src="{{ listing.imageUrl }}" alt="Your image" width="25%">
+                {% else %}
+                    <p>Your image can go here</p>
+                {% endif%}
+            </div>
+        <div class="row col-6 m-2 p-2 bg-white border">
+            <div class="col-9 bg-white mt-2 ml-2 mb-2 p-2">       
+                    <h4> 
+                         {{ listing.title }}
+                    </h4>
+                    <div  name="listingDescription">
+                        <p>
+                            {{ listing.description }}
+                        </p>
+                    </div>
+            </div>
+            <div class="col border-left border-secondary bg-white mr-2 mb-2 mt-2 p-2 name="listingPrize">
+                    <h4>Current prize:</h4>
+                    {{ listing.listingPrize }} €
+            </div>
+            <div style="text-align: right; color: grey; font-size: small;" name="listingCategory">
+                category: {{ listing.category }}
+            </div>
+        </div>
+            {% if request.user.is_authenticated %}
+            <div class="col m-2 p-2">
+                {% if watchlistCheck == False and checkMaxBidder == False %}
+                    <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="submit" class="form-control" value="Add to Watchlist">
+                        </div>
+                    </form>
+                {% elif checkMaxBidder == False and checkMaxBidder == False %}
+                    <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="submit" class="form-control" value="Remove from Watchlist">
+                        </div>
+                    </form>
+                {% endif %}
+                {% if currentUser == listing.listingOwner and listing.listingStatus != "closed" and checkMaxBidder == False %}
+                    <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="submit" class="form-control" name="closeAuctionButton" value="Close Auction">
+                        </div>
+                    </form>
+                {% elif currentUser == listing.listingOwner and listing.listingStatus == "closed" and checkMaxBidder == False %}
+                    Auction has been closed by the creator
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% if request.user.is_authenticated and listing.listingStatus == "open" %}
+        <div class="row">
+            <div class="col-3 m-2 p-2"></div>
+            <div class="col-6 m-2 p-2 bg-white border ">
+                <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="bidPrizeInput">Place your bid here [€]</label>
+                        <input type="number" class="form-control" id="bidPrizeInput" name="bidPrize" value="{{ listing.listingPrize|add:1 }}" min="{{ listing.listingPrize|add:1 }}">
+                        <input type="submit" class="form-control" value="Place Bid">
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% elif request.user.is_authenticated and listing.listingStatus == "closed" and checkMaxBidder == False %}
+        <div class="row">
+            <div class="col-3 m-2 p-2"></div>
+            <div class="col-6 m-2 p-2 bg-white border">
+                <p>
+                    This auction has been closed. You are not the highest bidder.
+                </p>
+            </div>
+        </div>
+        {% elif request.user.is_authenticated and listing.listingStatus == "closed" and checkMaxBidder == True %}
+        <div class="row">
+            <div class="col-3 m-2 p-2"></div>
+            <div class="col-6 m-2 p-2 border">
+                <p style="text-align: center; font-size: x-large;">
+                    !!! Congratulations, you have won this auction !!!
+                </p>
+            </div>
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-3 m-2 p-2"></div>
+            <div class="col-6 m-2 p-2 bg-white border">
+                <p>
+                    Log in to place a bid.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+        {% if request.user.is_authenticated %}
+        <div class="row">
+            <div class="col-3 m-2 p-2"></div>
+            <div class="col-6 m-2 p-2 bg-white border">
+                <form action="{% url 'listingDetails' listing.id %}" method="POST">
+                    {% csrf_token %}
+                    <textarea class="form-control" type="form" name="commentInput" placeholder="Enter a comment here"></textarea>
+                    <input class="form-control " type="submit" value="Upload Comment">
+                </form>
+            </div>
+        </div>
+        <hr color="grey">
+        {% for comment in comments %}
+        <div class="row">
+            <div class="col-3 m-2 p-2"></div>
+            <div class="col-6 m-2 p-2 bg-white border">
+                <p style="font-style: italic;">{{ comment.commentContent }}</p>
+                <br>
+                <hr>
+                <p style="font-size: x-small; color: black"> by {{ comment.commentCreator.username  }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+
+{% endblock %}
